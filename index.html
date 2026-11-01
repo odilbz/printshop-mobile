@@ -23,6 +23,7 @@ label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
 .m{color:var(--mute)}.bad{color:var(--bad);font-weight:600}
 .tot{display:flex;justify-content:space-between;font-size:19px;padding:10px 0}
 .tag{background:var(--soft);color:var(--ac);border-radius:99px;padding:1px 10px;font-size:13px;white-space:nowrap}.tag.r{background:#FDE8EC;color:var(--bad)}.tag.g{background:#E3F6EE;color:var(--ok)}
+.st{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}.sc{border-radius:16px;padding:14px}.sc small{color:var(--mute);display:block;font-size:13px}.sc b{display:block;font-size:19px;margin-top:2px}
 .warn{background:#FFF4DC;border:1px solid #F5DDA4;color:#7A5410;padding:10px 12px;border-radius:14px;margin-bottom:10px;font-size:14px}
 nav{position:fixed;bottom:0;inset-inline:0;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
 nav a{flex:1;text-align:center;padding:9px 2px;font-size:12px;color:var(--mute)}nav a.on{color:var(--ac);font-weight:700}
@@ -57,18 +58,28 @@ function sheet(title,html,ok,fn){const o=document.createElement("div");o.classNa
  const f=o.querySelector("input,select");if(f&&!/Android|iPhone/.test(navigator.userAgent))f.focus();return{o,c}}
 const val=(o,n)=>o.querySelector(`[name=${n}]`).value;
 const ask=(msg,fn)=>sheet("تأكيد",`<p>${esc(msg)}</p>`,"نعم",fn);
-const IC={sale:'<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+const IC={home:'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',sale:'<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
 prod:'<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
 cust:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
 hist:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>',
 set:'<line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/>'};
-const TABS=[["sale","بيع"],["prod","منتجات"],["cust","زبائن"],["hist","السجل"],["set","إعدادات"]];
-let tab="sale",C=[],touched=false;
+const TABS=[["home","الرئيسية"],["sale","بيع"],["prod","منتجات"],["cust","زبائن"],["hist","السجل"],["set","إعدادات"]];
+let tab="home",C=[],touched=false;
 const VIEWS={};
 function draw(){$("#n").innerHTML=TABS.map(t=>`<a href="#${t[0]}" class="${t[0]==tab?"on":""}"><svg viewBox="0 0 24 24">${IC[t[0]]}</svg>${t[1]}</a>`).join("");VIEWS[tab]();
  const le=D.cfg.lastExport,old=!le||(Date.now()-new Date(le.replace(" ","T")))>7*864e5;
  if(old&&(D.sales.length||D.products.length))$("#v").insertAdjacentHTML("afterbegin",`<div class="warn">لم تُصدِّر نسخة احتياطية منذ أكثر من أسبوع. افتح «إعدادات» ← «تصدير نسخة».</div>`)}
-window.addEventListener("hashchange",()=>{tab=(location.hash||"#sale").slice(1);if(!VIEWS[tab])tab="sale";draw();scrollTo(0,0)});
+window.addEventListener("hashchange",()=>{tab=(location.hash||"#home").slice(1);if(!VIEWS[tab])tab="home";draw();scrollTo(0,0)});
+
+/* ---------- الرئيسية ---------- */
+VIEWS.home=()=>{const d=now().slice(0,10),m=d.slice(0,7),sum=f=>D.sales.filter(f).reduce((a,s)=>a+s.total,0);
+ const profit=D.sales.filter(s=>s.date.slice(0,7)==m).reduce((a,s)=>a+s.items.reduce((b,i)=>b+(i.cost>0?i.qty*(i.price-i.cost):0),0),0);
+ const credit=D.customers.reduce((a,c)=>a+debt(c.id),0),low=D.products.filter(p=>p.stock!=null&&p.stock<=p.min);
+ const card=(bg,t,v)=>`<div class="sc" style="background:${bg}"><small>${t}</small><b>${money(v)}</b></div>`;
+ $("#v").innerHTML=`<h1>${esc(D.cfg.shop)||"الرئيسية"}</h1><div class="st">${card("#EAF6FD","مبيعات اليوم",sum(s=>s.date.slice(0,10)==d))}${card("#E8F7F1","مبيعات الشهر",sum(s=>s.date.slice(0,7)==m))}${card("#FFF6DC","ربح الشهر (للمنتجات ذات تكلفة)",profit)}${card("#FDECF3","إجمالي الكريدي",credit)}</div>
+ ${D.products.length?"":`<div class="c">ابدأ بإضافة منتجاتك من تبويب «منتجات»، ثم سجّل أول بيع.</div>`}
+ <div class="c"><h3>آخر المبيعات</h3>${D.sales.slice(-5).reverse().map(s=>`<div class="li"><div><b>${money(s.total)}</b><br><small class="m">${s.date} ${esc(cname(s.cid))}</small></div>${s.total-s.paid>.001?`<span class="tag r">كريدي</span>`:`<span class="tag g">مدفوع</span>`}</div>`).join("")||'<p class="m">لا توجد مبيعات بعد.</p>'}</div>
+ ${low.length?`<div class="c"><h3>مخزون منخفض</h3>${low.map(p=>`<div class="li"><span>${esc(p.name)}</span><span class="tag r">${qf(p.stock)}</span></div>`).join("")}</div>`:""}`};
 
 /* ---------- بيع ---------- */
 const cartTotal=()=>Math.round(C.reduce((a,i)=>a+num(i.qty)*num(i.price),0)*100)/100;
@@ -87,7 +98,7 @@ VIEWS.sale=()=>{
  <label>ملاحظة</label><input id="nt"><div style="height:14px"></div><button class="b p" style="width:100%" id="sv">حفظ البيع</button></div>`;
  cart();
  $("#q").oninput=e=>$("#pl").innerHTML=pl(e.target.value);
- $("#pl").onclick=e=>{const b=e.target.closest("[data-p]");if(!b)return;const p=D.products.find(x=>x.id==b.dataset.p);addItem({pid:p.id,name:p.name,unit:p.unit||"",qty:1,price:p.price})};
+ $("#pl").onclick=e=>{const b=e.target.closest("[data-p]");if(!b)return;const p=D.products.find(x=>x.id==b.dataset.p);addItem({pid:p.id,name:p.name,unit:p.unit||"",qty:1,price:p.price,cost:p.cost||0})};
  $("#fr").onclick=()=>sheet("سطر حر",`<label>الوصف</label><input name="n"><label>الوحدة (اختياري)</label><input name="u"><label>السعر</label><input name="p" inputmode="decimal">`,"إضافة",o=>{const n=val(o,"n").trim();if(!n)throw new Error("اكتب الوصف");addItem({pid:0,name:n,unit:val(o,"u").trim(),qty:1,price:num(val(o,"p"))})});
  $("#cart").oninput=e=>{const k=e.target.dataset.k;if(k==null)return;C[k][e.target.dataset.f]=e.target.value;$("#l"+k).textContent=qf(num(C[k].qty)*num(C[k].price));tot()};
  $("#cart").onclick=e=>{const b=e.target.closest("button");if(!b)return;
@@ -100,15 +111,17 @@ VIEWS.sale=()=>{
   for(const i of C){if(num(i.qty)<=0)throw new Error("الكمية يجب أن تكون أكبر من صفر");if(num(i.price)<0)throw new Error("السعر غير صحيح")}
   const total=cartTotal(),cid=$("#cu").value?+$("#cu").value:0;let paid=Math.min(Math.max(num($("#pd").value),0),total);
   if(paid<total-.001&&!cid)throw new Error("اختر زبوناً لتسجيل المتبقي كريدي");
-  D.sales.push({id:nid(),date:now(),cid,total,paid,note:$("#nt").value.trim(),items:C.map(i=>({name:i.name,unit:i.unit,qty:num(i.qty),price:num(i.price)}))});
+  D.sales.push({id:nid(),date:now(),cid,total,paid,note:$("#nt").value.trim(),items:C.map(i=>({pid:i.pid||0,name:i.name,unit:i.unit,qty:num(i.qty),price:num(i.price),cost:num(i.cost)}))});
+  C.forEach(i=>{const pr=i.pid&&D.products.find(x=>x.id==i.pid);if(pr&&pr.stock!=null)pr.stock=Math.round((pr.stock-num(i.qty))*1000)/1000});
   save();C=[];touched=false;toast("تم حفظ البيع: "+money(total));draw()}catch(e){toast(e.message,1)}}};
 
 /* ---------- منتجات ---------- */
 const UNITS=["قطعة","متر","م²","م³","كغ","لتر","علبة","رزمة"];
-function prodForm(p={}){return `<label>اسم المنتج</label><input name="n" value="${esc(p.name)}"><label>الوحدة (اكتبها أو اختر)</label><input name="u" list="ul" value="${esc(p.unit)}"><datalist id="ul">${UNITS.map(u=>`<option>${u}</option>`).join("")}</datalist><label>سعر البيع</label><input name="p" inputmode="decimal" value="${p.price??""}">`}
+function prodForm(p={}){return `<label>اسم المنتج</label><input name="n" value="${esc(p.name)}"><label>الوحدة (اكتبها أو اختر)</label><input name="u" list="ul" value="${esc(p.unit)}"><datalist id="ul">${UNITS.map(u=>`<option>${u}</option>`).join("")}</datalist><label>سعر البيع</label><input name="p" inputmode="decimal" value="${p.price??""}"><label>سعر التكلفة (اختياري، لحساب الربح)</label><input name="c" inputmode="decimal" value="${p.cost||""}"><label>الكمية في المخزون (اتركها فارغة لعدم تتبع المخزون)</label><input name="s" inputmode="decimal" value="${p.stock??""}"><label>تنبيه عند الوصول إلى</label><input name="m" inputmode="decimal" value="${p.min||""}">`}
 function saveProd(o,p){const n=val(o,"n").trim();if(!n)throw new Error("اسم المنتج مطلوب");const pr=num(val(o,"p"));if(pr<0)throw new Error("السعر غير صحيح");
- if(p){p.name=n;p.unit=val(o,"u").trim();p.price=pr}else D.products.push({id:nid(),name:n,unit:val(o,"u").trim(),price:pr});save();draw()}
-VIEWS.prod=()=>{$("#v").innerHTML=`<h1>المنتجات والأسعار</h1><button class="b p" style="width:100%;margin-bottom:10px" id="ad">+ منتج جديد</button><div class="c">${D.products.length?D.products.slice().sort((a,b)=>a.name.localeCompare(b.name,"ar")).map(p=>`<div class="li"><div><b>${esc(p.name)}</b><br><small class="m">${money(p.price)}${p.unit?" / "+esc(p.unit):""}</small></div><div><button class="b s" data-e="${p.id}">تعديل</button> <button class="b s d" data-d="${p.id}">حذف</button></div></div>`).join(""):`<p class="m">لا توجد منتجات بعد.</p>`}</div>`;
+ const f={name:n,unit:val(o,"u").trim(),price:pr,cost:num(val(o,"c")),stock:val(o,"s").trim()===""?null:num(val(o,"s")),min:num(val(o,"m"))};
+ if(p)Object.assign(p,f);else D.products.push(Object.assign({id:nid()},f));save();draw()}
+VIEWS.prod=()=>{$("#v").innerHTML=`<h1>المنتجات والأسعار</h1><button class="b p" style="width:100%;margin-bottom:10px" id="ad">+ منتج جديد</button><div class="c">${D.products.length?D.products.slice().sort((a,b)=>a.name.localeCompare(b.name,"ar")).map(p=>`<div class="li"><div><b>${esc(p.name)}</b><br><small class="m">${money(p.price)}${p.unit?" / "+esc(p.unit):""}</small>${p.stock!=null?` <span class="tag ${p.stock<=p.min?"r":"g"}">مخزون ${qf(p.stock)}</span>`:""}</div><div><button class="b s" data-e="${p.id}">تعديل</button> <button class="b s d" data-d="${p.id}">حذف</button></div></div>`).join(""):`<p class="m">لا توجد منتجات بعد.</p>`}</div>`;
  $("#ad").onclick=()=>sheet("منتج جديد",prodForm(),"حفظ",o=>saveProd(o));
  $("#v").onclick=e=>{const b=e.target.closest("[data-e],[data-d]");if(!b)return;const p=D.products.find(x=>x.id==(b.dataset.e||b.dataset.d));
   if(b.dataset.e)sheet("تعديل المنتج",prodForm(p),"حفظ",o=>saveProd(o,p));else ask(`حذف «${p.name}»؟ الفواتير القديمة لا تتأثر.`,()=>{D.products=D.products.filter(x=>x!==p);save();draw()})}};
@@ -130,7 +143,7 @@ VIEWS.hist=()=>{const L=D.sales.slice().reverse().slice(0,200);$("#v").innerHTML
  $("#v").onclick=e=>{const r=e.target.closest("[data-s]");if(!r)return;const s=D.sales.find(x=>x.id==r.dataset.s);
   const sh=sheet(`فاتورة #${s.id}`,`<p>${s.date} — ${esc(cname(s.cid))||"نقداً"}${s.note?" — "+esc(s.note):""}</p>${s.items.map(i=>`<div class="li"><div>${esc(i.name)}<br><small class="m">${qf(i.qty)} ${esc(i.unit)} × ${money(i.price)}</small></div><b>${money(i.qty*i.price)}</b></div>`).join("")}<div class="tot"><span>الإجمالي</span><b>${money(s.total)}</b></div><p>المدفوع: ${money(s.paid)} — المتبقي: <b>${money(s.total-s.paid)}</b></p>`);
   sh.o.querySelector(".row").insertAdjacentHTML("afterbegin",`<button class="b d" id="dl">حذف الفاتورة</button>`);
-  sh.o.querySelector("#dl").onclick=()=>{sh.c();ask("حذف هذه الفاتورة نهائياً؟",()=>{D.sales=D.sales.filter(x=>x!==s);save();draw()})}}};
+  sh.o.querySelector("#dl").onclick=()=>{sh.c();ask("حذف هذه الفاتورة نهائياً؟",()=>{D.sales=D.sales.filter(x=>x!==s);s.items.forEach(i=>{const pr=i.pid&&D.products.find(x=>x.id==i.pid);if(pr&&pr.stock!=null)pr.stock=Math.round((pr.stock+i.qty)*1000)/1000});save();draw()})}}};
 
 /* ---------- إعدادات ---------- */
 VIEWS.set=()=>{$("#v").innerHTML=`<h1>الإعدادات</h1><div class="c"><label>اسم المطبعة</label><input id="sn" value="${esc(D.cfg.shop)}"><label>العملة</label><input id="cu" value="${esc(D.cfg.currency)}"><div style="height:12px"></div><button class="b p" id="sg">حفظ</button></div>
